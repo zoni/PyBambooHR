@@ -55,6 +55,7 @@ class PyBambooHR(object):
         datatype="JSON",
         underscore_keys=False,
         timeout=60,
+        requests_client=None,
         **kwargs
     ):
         """
@@ -64,7 +65,13 @@ class PyBambooHR(object):
         @param api_key: String containing a valid API Key created in BambooHR.
         @param subdomain: String containing a valid company subdomain for a company in BambooHR.
         @param datatype: String of 'JSON' or 'XML'. Sets the Accept header for return type in our HTTP requests to BambooHR.
+        @param requests_client: A requests.Session object to use for HTTP requests. If not provided, a new instance will be created automatically.
         """
+        if requests_client is None:
+            self.session = requests.Session()
+        else:
+            self.session = requests_client
+
         if not api_key:
             api_key = config.api_key
 
@@ -368,7 +375,7 @@ class PyBambooHR(object):
 
         xml = self._format_employee_xml(employee)
         url = self.base_url + "employees/"
-        r = requests.post(
+        r = self.session.post(
             url,
             timeout=self.timeout,
             data=xml,
@@ -394,7 +401,7 @@ class PyBambooHR(object):
         employee = utils.camelcase_keys(employee)
         xml = self._format_employee_xml(employee)
         url = self.base_url + "employees/{0}".format(id)
-        r = requests.post(
+        r = self.session.post(
             url,
             timeout=self.timeout,
             data=xml,
@@ -413,7 +420,7 @@ class PyBambooHR(object):
         @return: A list of employee dictionaries which is a list of employees in the directory.
         """
         url = self.base_url + "employees/directory"
-        r = requests.get(
+        r = self.session.get(
             url, timeout=self.timeout, headers=self.headers, auth=(self.api_key, "")
         )
         r.raise_for_status()
@@ -458,7 +465,7 @@ class PyBambooHR(object):
             payload.update({"onlyCurrent": "false"})
 
         url = self.base_url + "employees/{0}".format(employee_id)
-        r = requests.get(
+        r = self.session.get(
             url,
             timeout=self.timeout,
             headers=self.headers,
@@ -523,7 +530,7 @@ class PyBambooHR(object):
         url = self.base_url + "employees/{0}/photo".format(employee_id)
         if photo_size:
             url = url + "/{}".format(photo_size)
-        r = requests.get(
+        r = self.session.get(
             url, timeout=self.timeout, headers=self.headers, auth=(self.api_key, "")
         )
         r.raise_for_status()
@@ -539,7 +546,7 @@ class PyBambooHR(object):
         """
 
         url = self.base_url + "employees/{0}/files/view/".format(employee_id)
-        r = requests.get(
+        r = self.session.get(
             url, timeout=self.timeout, headers=self.headers, auth=(self.api_key, "")
         )
         r.raise_for_status()
@@ -571,7 +578,7 @@ class PyBambooHR(object):
             }
 
             url = self.base_url + "employees/{0}/files/".format(employee_id)
-            r = requests.post(
+            r = self.session.post(
                 url,
                 timeout=self.timeout,
                 headers=self.headers,
@@ -595,7 +602,7 @@ class PyBambooHR(object):
         url = self.base_url + "employees/{0}/tables/{1}/".format(
             employee_id, table_name
         )
-        r = requests.post(
+        r = self.session.post(
             url,
             timeout=self.timeout,
             data=xml,
@@ -621,7 +628,7 @@ class PyBambooHR(object):
         url = self.base_url + "employees/{0}/tables/{1}/{2}/".format(
             employee_id, table_name, row_id
         )
-        r = requests.post(
+        r = self.session.post(
             url,
             timeout=self.timeout,
             data=xml,
@@ -663,7 +670,7 @@ class PyBambooHR(object):
         url = self.base_url + "reports/{0}?format={1}&fd={2}&onlyCurrent={3}".format(
             report_id, report_format, filter_duplicates, self.only_current
         )
-        r = requests.get(
+        r = self.session.get(
             url, timeout=self.timeout, headers=self.headers, auth=(self.api_key, "")
         )
         r.raise_for_status()
@@ -737,7 +744,7 @@ class PyBambooHR(object):
             last_changed=last_changed,
         )
         url = self.base_url + "reports/custom/?format={0}".format(report_format)
-        r = requests.post(
+        r = self.session.post(
             url,
             timeout=self.timeout,
             data=xml,
@@ -774,7 +781,7 @@ class PyBambooHR(object):
         the values of the table's fields for a particular date, which is stored by key 'date' in the dictionary.
         """
         url = self.base_url + "employees/{}/tables/{}".format(employee_id, table_name)
-        r = requests.get(
+        r = self.session.get(
             url, timeout=self.timeout, headers=self.headers, auth=(self.api_key, "")
         )
         r.raise_for_status()
@@ -815,7 +822,7 @@ class PyBambooHR(object):
         if _type:
             params.update({"type": _type})
 
-        r = requests.get(
+        r = self.session.get(
             url,
             timeout=self.timeout,
             params=params,
@@ -836,7 +843,7 @@ class PyBambooHR(object):
             params["start"] = start_date
         if end_date:
             params["end"] = end_date
-        r = requests.get(
+        r = self.session.get(
             url,
             timeout=self.timeout,
             params=params,
@@ -879,7 +886,7 @@ class PyBambooHR(object):
         @return: list containing fields information
         """
         url = self.base_url + "meta/fields/"
-        r = requests.get(
+        r = self.session.get(
             url, timeout=self.timeout, headers=self.headers, auth=(self.api_key, "")
         )
         r.raise_for_status()
@@ -897,7 +904,7 @@ class PyBambooHR(object):
         """
 
         url = self.base_url + "meta/tables/"
-        r = requests.get(url, timeout=self.timeout, auth=(self.api_key, ""))
+        r = self.session.get(url, timeout=self.timeout, auth=(self.api_key, ""))
         r.raise_for_status()
         data = utils.transform_table_data(r.content)
         self.meta_tables = data["tables"]["table"]
@@ -915,7 +922,7 @@ class PyBambooHR(object):
         """
 
         url = self.base_url + "meta/lists/"
-        r = requests.get(
+        r = self.session.get(
             url, timeout=self.timeout, headers=self.headers, auth=(self.api_key, "")
         )
         r.raise_for_status()
@@ -933,7 +940,7 @@ class PyBambooHR(object):
         """
 
         url = self.base_url + "meta/users/"
-        r = requests.get(
+        r = self.session.get(
             url, timeout=self.timeout, headers=self.headers, auth=(self.api_key, "")
         )
         r.raise_for_status()
@@ -942,7 +949,7 @@ class PyBambooHR(object):
 
     def _query(self, url, params, raw=False):
         url = self.base_url + url
-        r = requests.get(
+        r = self.session.get(
             url,
             timeout=self.timeout,
             params=params,
