@@ -1,6 +1,9 @@
-# PyBambooHR
+> ***NOTE**: This is a fork of the original [PyBambooHR](https://github.com/smeggingsmegger/PyBambooHR) which appears unmaintained at this point.
+> It contains Python 3 compatibility and performance improvements, but I have no interest in taking over any kind of maintainership, nor am I likely to fix existing bugs.
+> The code in this fork works for my use-cases and comes as-is without any promise of further support.
+> Original README follows below.*
 
-[![Build Status](https://secure.travis-ci.org/smeggingsmegger/PyBambooHR.png)](https://travis-ci.org/smeggingsmegger/PyBambooHR)&nbsp;&nbsp;&nbsp;![Download Stats](https://pypip.in/download/PyBambooHR/badge.svg)
+# PyBambooHR
 
 This is an unofficial Python API for Bamboo HR. So far it is focusing on managing employee information but you can pretty much do anything you want with a little python.
 
